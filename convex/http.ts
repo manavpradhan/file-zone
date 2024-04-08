@@ -21,8 +21,6 @@ http.route({
         },
       });
 
-      console.log("result: ", result)
-
       switch (result.type) {    
         case "user.created":
           await ctx.runMutation(internal.users.createUser, {
@@ -32,6 +30,14 @@ http.route({
             }`,
             image: result.data.image_url,
           });
+          break;
+
+        case "organizationMembership.created":
+          await ctx.runMutation(internal.users.addOrgIdtoUser, {
+            tokenIdentifier: `https://${process.env.CLERK_HOSTNAME}|${result.data.public_user_data.user_id}`,
+            orgId: result.data.organization.id,
+          })
+          
           break;
       }
 
