@@ -15,7 +15,8 @@ export const createUser = internalMutation({
     args: {
         tokenIdentifier: v.string(),
         name: v.string(),
-        image: v.string()
+        image: v.string(),
+        userId: v.string(),
     },
     async handler(ctx, args){
         await ctx.db.insert("users", {
@@ -23,6 +24,14 @@ export const createUser = internalMutation({
             name: args.name,
             image: args.image,
             orgIds: [],
+        })
+
+        const user = await getUser(ctx, args.tokenIdentifier)
+        await ctx.db.patch(user._id, {
+            orgIds: [...user.orgIds, args.userId]
+        })
+        await ctx.db.patch(user._id, {
+            orgIds: [...user.orgIds, args.userId]
         })
     }
 })

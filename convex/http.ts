@@ -29,6 +29,7 @@ http.route({
               result.data.last_name ?? ""
             }`,
             image: result.data.image_url,
+            userId: result.data.id,
           });
           break;
 
