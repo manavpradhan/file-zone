@@ -1,6 +1,7 @@
 import {MutationCtx, QueryCtx, internalAction, mutation, query} from "./_generated/server"
 import {ConvexError, v} from "convex/values"
 import { getUser } from "./users";
+import { fileTypes } from "./schema";
 
 async function hasAccessToOrg(ctx: QueryCtx | MutationCtx, orgId: string, tokenIdentifier: string) {
     const user = await getUser(ctx, tokenIdentifier)
@@ -23,7 +24,8 @@ export const createFile = mutation({
     args: {
         name: v.string(),
         orgId: v.string(),
-        fileId: v.id("_storage")
+        fileId: v.id("_storage"),
+        type: fileTypes,
     },
     async handler(ctx, args){
 
@@ -42,6 +44,7 @@ export const createFile = mutation({
             name: args.name,
             orgId: args.orgId,
             fileId: args.fileId,
+            type: args.type,
         })
     }
 

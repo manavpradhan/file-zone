@@ -6,6 +6,7 @@ import { UploadButton } from "./upload-button";
 import { FileCard } from "./file-card";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
+import { SearchBar } from "./search-bar";
 
 export default function Home() {
   const organization = useOrganization();
@@ -46,8 +47,10 @@ export default function Home() {
         <>
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-4xl font-bold">Your Files</h1>
+            <SearchBar />
             <UploadButton orgId={orgId} />
           </div>
+
           <div className="grid grid-cols-4 gap-4">
             {files?.map((file) => {
               return <FileCard key={file._id} file={file} />;

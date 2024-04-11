@@ -26,13 +26,31 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-import { Doc } from "../../convex/_generated/dataModel";
+import { Doc, Id } from "../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, TrashIcon } from "lucide-react";
-import { useState } from "react";
+import {
+  FileTextIcon,
+  GanttChartIcon,
+  ImageIcon,
+  MoreVertical,
+  TrashIcon,
+} from "lucide-react";
+import { ReactNode, useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useToast } from "@/components/ui/use-toast";
+import Image from "next/image";
+
+function GetImage({ storageId }: { storageId: string }) {
+  const imageUrl = new URL(`${process.env.NEXT_PUBLIC_CONVEX_URL}/getImage`);
+  imageUrl.searchParams.set("storageId", storageId);
+
+  return <img src={imageUrl.href} height="100px" width="200px" />;
+}
+
+function getFileUrl(fileId: Id<"_storage">): string {
+  return `${process.env.NEXT_PUBLIC_CONVEX_URL}/api/storage/${fileId}`;
+}
 
 function FileCardActions({ file }: { file: Doc<"files"> }) {
   const [open, setOpen] = useState(false);
@@ -89,20 +107,74 @@ function FileCardActions({ file }: { file: Doc<"files"> }) {
 }
 
 export function FileCard({ file }: { file: Doc<"files"> }) {
+  const typeIcons = {
+    txt: <FileTextIcon />,
+    csv: <GanttChartIcon />,
+    pdf: <FileTextIcon />,
+    image: <ImageIcon />,
+  } as Record<Doc<"files">["type"], ReactNode>;
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          {file.name} <FileCardActions file={file} />
+        <CardTitle className="flex gap-3 items-center">
+          <p>{typeIcons[file.type]}</p>
+          <div className="flex items-center w-full justify-between">
+            <p>{file.name}</p>
+            <FileCardActions file={file} />
+          </div>
         </CardTitle>
         {/* <CardDescription>Card Description</CardDescription> */}
       </CardHeader>
-      <CardContent>
-        <p>Card Content</p>
+      <CardContent className="h-[200px] flex justify-center items-center">
+        {file.type === "image" && (
+          // <GetImage storageId={file.fileId.toString()} />
+          <Image
+            src={getFileUrl(file.fileId)}
+            alt="image file"
+            height={75}
+            width={150}
+            className="mx-auto"
+          />
+        )}
+        {file.type === "pdf" && (
+          <Image
+            src={"/pdf.png"}
+            alt="pdf file"
+            height={75}
+            width={150}
+            className="mx-auto"
+          />
+        )}
+        {file.type === "csv" && (
+          <Image
+            src={"/csv.png"}
+            alt="csv file"
+            height={75}
+            width={150}
+            className="mx-auto"
+          />
+        )}
+        {file.type === "txt" && (
+          <Image
+            src={"/txt.jpg"}
+            alt="text file"
+            height={75}
+            width={150}
+            className="mx-auto"
+          />
+        )}
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex items-center justify-between">
         {/* <p>{file._creationTime}</p> */}
-        <Button>Download</Button>
+        <Button
+          onClick={() => {
+            window.open(getFileUrl(file.fileId), "_blank");
+          }}
+        >
+          Download
+        </Button>
+        <p>{file.type}</p>
       </CardFooter>
     </Card>
   );
