@@ -30,9 +30,6 @@ export const createUser = internalMutation({
         await ctx.db.patch(user._id, {
             orgIds: [...user.orgIds, args.userId]
         })
-        await ctx.db.patch(user._id, {
-            orgIds: [...user.orgIds, args.userId]
-        })
     }
 })
 

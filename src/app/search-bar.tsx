@@ -17,16 +17,16 @@ import { api } from "../../convex/_generated/api";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, SearchIcon } from "lucide-react";
+import { DeleteIcon, Loader2, SearchIcon, Trash2 } from "lucide-react";
 import { Doc } from "../../convex/_generated/dataModel";
 
 const formSchema = z.object({
   query: z.string().min(0).max(200),
 });
 
-export function SearchBar() {
+export function SearchBar({query, setQuery}: {query: string, setQuery: Dispatch<SetStateAction<string>>}) {
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -36,32 +36,16 @@ export function SearchBar() {
     },
   });
 
-  const fileref = form.register("query");
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      form.reset();
-
-      toast({
-        variant: "success",
-        title: "All Right!! 🙌",
-        description: "Your file has been uploaded",
-      });
-    } catch (err) {
-      toast({
-        variant: "destructive",
-        title: "Something went wrong! 😕",
-        description: "Your file couldn't be uploaded. Try again later.",
-      });
-    }
+    setQuery(values.query)
   }
 
   return (
     <div>
       <Form {...form}>
-        <form
+        <form 
           onSubmit={form.handleSubmit(onSubmit)}
-          className="flex gap-5 items-center"
+          className="flex gap-5 items-center relative"
         >
           <FormField
             control={form.control}
@@ -69,13 +53,14 @@ export function SearchBar() {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input {...field} placeholder="Search your files here..." />
+                  <Input {...field} placeholder="Search your files here..." className="w-[500px]"/>
                 </FormControl>
-                <FormMessage />
+                <FormMessage /> 
               </FormItem>
             )}
           />
-          <Button type="submit" disabled={form.formState.isSubmitting}>
+          <DeleteIcon className="absolute right-[140px] cursor-pointer" onClick={()=>{form.reset(); setQuery("")}}/>
+          <Button size={"sm"} type="submit" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting ? (
               <Loader2 className="mr-3 h-5 w-5 animate-spin" />
             ) : (
