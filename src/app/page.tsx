@@ -2,13 +2,13 @@
 import { useOrganization, useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { UploadButton } from "./upload-button";
-import { FileCard } from "./file-card";
+import { UploadButton } from "./dashboard/_components/upload-button";
+import { FileCard } from "./dashboard/_components/file-card";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
-import { SearchBar } from "./search-bar";
+import { SearchBar } from "./dashboard/_components/search-bar";
 import { useState } from "react";
-import { SideNav } from "./side-nav";
+import { SideNav } from "./dashboard/_components/side-nav";
 
 export default function Home() {
   const organization = useOrganization();
@@ -23,8 +23,8 @@ export default function Home() {
   const files = useQuery(api.files.getFiles, orgId ? { orgId, query } : "skip");
 
   return (
-    <main className="container mx-auto pt-5 ">
-      <div className="flex">
+    <main className="container mx-auto pt-5">
+      <div className="flex gap-7">
         <SideNav />
         <div className="w-full">
           <div className="flex justify-between items-center mb-8">

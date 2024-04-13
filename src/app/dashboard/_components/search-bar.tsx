@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 import { useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../../../convex/_generated/api";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,13 +20,19 @@ import { useForm } from "react-hook-form";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { DeleteIcon, Loader2, SearchIcon, Trash2 } from "lucide-react";
-import { Doc } from "../../convex/_generated/dataModel";
+import { Doc } from "../../../../convex/_generated/dataModel";
 
 const formSchema = z.object({
   query: z.string().min(0).max(200),
 });
 
-export function SearchBar({query, setQuery}: {query: string, setQuery: Dispatch<SetStateAction<string>>}) {
+export function SearchBar({
+  query,
+  setQuery,
+}: {
+  query: string;
+  setQuery: Dispatch<SetStateAction<string>>;
+}) {
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -37,13 +43,13 @@ export function SearchBar({query, setQuery}: {query: string, setQuery: Dispatch<
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setQuery(values.query)
+    setQuery(values.query);
   }
 
   return (
     <div>
       <Form {...form}>
-        <form 
+        <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex gap-5 items-center relative"
         >
@@ -53,14 +59,28 @@ export function SearchBar({query, setQuery}: {query: string, setQuery: Dispatch<
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input {...field} placeholder="Search your files here..." className="w-[500px]"/>
+                  <Input
+                    {...field}
+                    placeholder="Search your files here..."
+                    className="w-[500px]"
+                  />
                 </FormControl>
-                <FormMessage /> 
+                <FormMessage />
               </FormItem>
             )}
           />
-          <DeleteIcon className="absolute right-[140px] cursor-pointer" onClick={()=>{form.reset(); setQuery("")}}/>
-          <Button size={"sm"} type="submit" disabled={form.formState.isSubmitting}>
+          <DeleteIcon
+            className="absolute right-[115px] cursor-pointer"
+            onClick={() => {
+              form.reset();
+              setQuery("");
+            }}
+          />
+          <Button
+            size={"sm"}
+            type="submit"
+            disabled={form.formState.isSubmitting}
+          >
             {form.formState.isSubmitting ? (
               <Loader2 className="mr-3 h-5 w-5 animate-spin" />
             ) : (

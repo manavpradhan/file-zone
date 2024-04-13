@@ -1,3 +1,4 @@
+"use client";
 import {
   Card,
   CardContent,
@@ -26,18 +27,19 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-import { Doc, Id } from "../../convex/_generated/dataModel";
+import { Doc, Id } from "../../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import {
   FileTextIcon,
   GanttChartIcon,
   ImageIcon,
   MoreVertical,
+  StarIcon,
   TrashIcon,
 } from "lucide-react";
-import { ReactNode, useState } from "react";
+import { Dispatch, ReactNode, SetStateAction, useState } from "react";
 import { useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../../../convex/_generated/api";
 import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
 
@@ -55,6 +57,7 @@ function getFileUrl(fileId: Id<"_storage">): string {
 function FileCardActions({ file }: { file: Doc<"files"> }) {
   const [open, setOpen] = useState(false);
   const deleteFile = useMutation(api.files.deleteFile);
+  const toggleFavorite = useMutation(api.files.toggleFavorite);
   const { toast } = useToast();
 
   return (
@@ -93,6 +96,16 @@ function FileCardActions({ file }: { file: Doc<"files"> }) {
           <MoreVertical />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
+          <DropdownMenuItem
+            className="flex gap-3 items-center text-green-500 cursor-pointer"
+            onClick={async () => {
+              await toggleFavorite({ fileId: file._id });
+            }}
+          >
+            <StarIcon className="h-5 w-5" />
+            Favorite
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem
             className="flex gap-3 items-center text-red-500 cursor-pointer"
             onClick={() => setOpen(true)}
@@ -174,7 +187,9 @@ export function FileCard({ file }: { file: Doc<"files"> }) {
         >
           Download
         </Button>
-        <p>{file.type}</p>
+        <div>
+          <p>{file.type}</p>
+        </div>
       </CardFooter>
     </Card>
   );
