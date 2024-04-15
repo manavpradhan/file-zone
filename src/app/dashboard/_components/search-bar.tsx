@@ -51,7 +51,7 @@ export function SearchBar({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="flex gap-5 items-center relative"
+          className="flex gap-5 items-center"
         >
           <FormField
             control={form.control}
@@ -59,22 +59,24 @@ export function SearchBar({
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="Search your files here..."
-                    className="w-[500px]"
-                  />
+                  <div className="flex items-center relative">
+                    <Input
+                      {...field}
+                      placeholder="Search your files here..."
+                      className="w-[500px]"
+                    />
+                    <DeleteIcon
+                      className="cursor-pointer absolute right-3"
+                      onClick={() => {
+                        form.reset();
+                        setQuery("");
+                      }}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
-          />
-          <DeleteIcon
-            className="absolute right-[115px] cursor-pointer"
-            onClick={() => {
-              form.reset();
-              setQuery("");
-            }}
           />
           <Button
             size={"sm"}

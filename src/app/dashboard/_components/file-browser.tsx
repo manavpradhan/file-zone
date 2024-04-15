@@ -9,7 +9,7 @@ import { Loader2 } from "lucide-react";
 import { SearchBar } from "../_components/search-bar";
 import { useState } from "react";
 
-export function FileBrowser({ title }: { title: string }) {
+export function FileBrowser({ title, favorites }: { title: string, favorites?: boolean }) {
   const organization = useOrganization();
   const user = useUser();
   const [query, setQuery] = useState("");
@@ -19,7 +19,9 @@ export function FileBrowser({ title }: { title: string }) {
     orgId = organization.organization?.id ?? user.user?.id;
   }
 
-  const files = useQuery(api.files.getFiles, orgId ? { orgId, query } : "skip");
+
+  const files = useQuery(api.files.getFiles, orgId ? { orgId, query, favorites } : "skip");
+  const myfavorites = useQuery(api.files.myFavorites, orgId ? {orgId} : 'skip');
 
   return (
     <div>
@@ -60,7 +62,7 @@ export function FileBrowser({ title }: { title: string }) {
       {files && !query && files.length > 0 && (
         <div className="grid grid-cols-4 gap-4">
           {files?.map((file) => {
-            return <FileCard key={file._id} file={file} />;
+            return <FileCard key={file._id} file={file} myfavorites={myfavorites ?? []}/>;
           })}
         </div>
       )}
@@ -74,7 +76,7 @@ export function FileBrowser({ title }: { title: string }) {
       {files && query && files.length > 0 && (
         <div className="grid grid-cols-4 gap-4">
           {files?.map((file) => {
-            return <FileCard key={file._id} file={file} />;
+            return <FileCard key={file._id} file={file} myfavorites={myfavorites ?? []}/>;
           })}
         </div>
       )}

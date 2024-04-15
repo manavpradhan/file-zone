@@ -53,13 +53,13 @@ export default function Home() {
             </div>
           )}
 
-          {files && !query && files.length > 0 && (
+          {/* {files && !query && files.length > 0 && (
             <div className="grid grid-cols-4 gap-4">
               {files?.map((file) => {
-                return <FileCard key={file._id} file={file} />;
+                return <FileCard key={file._id} file={file} myfavorites={}/>;
               })}
             </div>
-          )}
+          )} */}
 
           {files && query && files.length === 0 && (
             <div className="text-2xl mx-auto text-center my-[200px]">
@@ -67,13 +67,13 @@ export default function Home() {
             </div>
           )}
 
-          {files && query && files.length > 0 && (
+          {/* {files && query && files.length > 0 && (
             <div className="grid grid-cols-4 gap-4">
               {files?.map((file) => {
                 return <FileCard key={file._id} file={file} />;
               })}
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </main>

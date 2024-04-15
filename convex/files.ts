@@ -54,28 +54,37 @@ export const getFiles = query({
     args: {
         orgId: v.string(),
         query: v.string(),
+        favorites: v.optional(v.boolean()),
     },
     async handler(ctx, args){
         const identity = await ctx.auth.getUserIdentity();
-
         if(!identity){
-            return [];
+            throw new ConvexError("You are not logged in!");
         }
+
+        const user = await getUser(ctx, identity.tokenIdentifier)
 
         const hasAccess = await hasAccessToOrg(ctx, args.orgId, identity.tokenIdentifier)
         if (!hasAccess){
-            return [];
+            throw new ConvexError("You do not have access to this organization!");
         }
 
-        const files = await ctx.db.query("files").withIndex("by_orgId", q => q.eq('orgId', args.orgId)).collect();
+        let files = await ctx.db.query("files").withIndex("by_orgId", q => q.eq('orgId', args.orgId)).collect();
 
+        if(args.favorites){
+            const favFiles = await ctx.db.query("favorites").withIndex("by_userId_orgId_fileId", q=>q.eq("userId", user._id).eq("orgId", args.orgId)).collect();
+    
+            files = files.filter((file)=>{
+                return favFiles.some((f)=>f.fileId===file._id)
+            })
+        }
         const query = args.query;
         
         if(query){
             return files.filter((file) => file.name.toLowerCase().includes(query.toLowerCase()));
-        }else{
-            return files;
         }
+
+        return files;
     }
 })
 
@@ -137,5 +146,28 @@ export const toggleFavorite = mutation({
             // Delete favorite
             await ctx.db.delete(favorite._id);
         }
+    }
+})
+
+export const myFavorites = query({
+    args: {
+        orgId: v.string(), 
+    },
+    async handler(ctx, args){
+        const identity = await ctx.auth.getUserIdentity();
+        if(!identity){
+            throw new ConvexError("You are not logged in!");
+        }
+
+        const user = await getUser(ctx, identity.tokenIdentifier)
+
+        const hasAccess = await hasAccessToOrg(ctx, args.orgId, identity.tokenIdentifier)
+        if (!hasAccess){
+            throw new ConvexError("You do not have access to this organization!");
+        }
+
+        const favoriteFiles = await ctx.db.query("favorites").withIndex("by_userId_orgId_fileId", q=>q.eq("userId", user._id).eq("orgId", args.orgId)).collect();
+
+        return favoriteFiles;
     }
 })
