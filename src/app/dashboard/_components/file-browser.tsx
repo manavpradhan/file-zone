@@ -9,7 +9,15 @@ import { Loader2 } from "lucide-react";
 import { SearchBar } from "../_components/search-bar";
 import { useState } from "react";
 
-export function FileBrowser({ title, favorites }: { title: string, favorites?: boolean }) {
+export function FileBrowser({
+  title,
+  favorites,
+  trash,
+}: {
+  title: string;
+  favorites?: boolean;
+  trash?: boolean;
+}) {
   const organization = useOrganization();
   const user = useUser();
   const [query, setQuery] = useState("");
@@ -19,9 +27,14 @@ export function FileBrowser({ title, favorites }: { title: string, favorites?: b
     orgId = organization.organization?.id ?? user.user?.id;
   }
 
-
-  const files = useQuery(api.files.getFiles, orgId ? { orgId, query, favorites } : "skip");
-  const myfavorites = useQuery(api.files.myFavorites, orgId ? {orgId} : 'skip');
+  const files = useQuery(
+    api.files.getFiles,
+    orgId ? { orgId, query, favorites, trash } : "skip"
+  );
+  const myfavorites = useQuery(
+    api.files.myFavorites,
+    orgId ? { orgId } : "skip"
+  );
 
   return (
     <div>
@@ -56,13 +69,20 @@ export function FileBrowser({ title, favorites }: { title: string, favorites?: b
               later on.
             </div>
           )}
+          {trash && <div className="text-2xl mb-10">Trash is empty!</div>}
         </div>
       )}
 
       {files && !query && files.length > 0 && (
         <div className="grid grid-cols-4 gap-4">
           {files?.map((file) => {
-            return <FileCard key={file._id} file={file} myfavorites={myfavorites ?? []}/>;
+            return (
+              <FileCard
+                key={file._id}
+                file={file}
+                myfavorites={myfavorites ?? []}
+              />
+            );
           })}
         </div>
       )}
@@ -76,7 +96,13 @@ export function FileBrowser({ title, favorites }: { title: string, favorites?: b
       {files && query && files.length > 0 && (
         <div className="grid grid-cols-4 gap-4">
           {files?.map((file) => {
-            return <FileCard key={file._id} file={file} myfavorites={myfavorites ?? []}/>;
+            return (
+              <FileCard
+                key={file._id}
+                file={file}
+                myfavorites={myfavorites ?? []}
+              />
+            );
           })}
         </div>
       )}

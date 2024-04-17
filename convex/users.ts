@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { MutationCtx, QueryCtx, internalMutation } from "./_generated/server";
+import { roles } from "./schema";
 
 
 export async function getUser(ctx: QueryCtx | MutationCtx, tokenIdentifier: string) {
@@ -17,6 +18,7 @@ export const createUser = internalMutation({
         name: v.string(),
         image: v.string(),
         userId: v.string(),
+        role: roles,
     },
     async handler(ctx, args){
         await ctx.db.insert("users", {
@@ -28,7 +30,7 @@ export const createUser = internalMutation({
 
         const user = await getUser(ctx, args.tokenIdentifier)
         await ctx.db.patch(user._id, {
-            orgIds: [...user.orgIds, args.userId]
+            orgIds: [...user.orgIds, {orgId: args.userId, role: args.role}]
         })
     }
 })
@@ -37,11 +39,34 @@ export const addOrgIdtoUser = internalMutation({
     args: {
         tokenIdentifier: v.string(),
         orgId: v.string(),
+        role: roles,
     },
     async handler(ctx, args){
         const user = await getUser(ctx, args.tokenIdentifier)
         await ctx.db.patch(user._id, {
-            orgIds: [...user.orgIds, args.orgId]
+            orgIds: [...user.orgIds, {orgId: args.orgId, role: args.role}]
+        })
+    }
+})
+
+export const updateUserRole = internalMutation({
+    args: {
+        tokenIdentifier: v.string(),
+        orgId: v.string(),
+        role: roles,
+    },
+    async handler(ctx, args){
+        const user = await getUser(ctx, args.tokenIdentifier)
+
+        const org = user.orgIds.find((org)=>org.orgId === args.orgId);
+        if(!org){
+            throw new ConvexError(("No such organization found!"))
+        }
+
+        org.role = args.role;
+
+        await ctx.db.patch(user._id, {
+            orgIds: user.orgIds
         })
     }
 })

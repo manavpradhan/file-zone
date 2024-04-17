@@ -37,12 +37,14 @@ import {
   StarIcon,
   StarOffIcon,
   TrashIcon,
+  Undo,
 } from "lucide-react";
 import { Dispatch, ReactNode, SetStateAction, useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
+import { Protect } from "@clerk/nextjs";
 
 function GetImage({ storageId }: { storageId: string }) {
   const imageUrl = new URL(`${process.env.NEXT_PUBLIC_CONVEX_URL}/getImage`);
@@ -55,12 +57,17 @@ function getFileUrl(fileId: Id<"_storage">): string {
   return `${process.env.NEXT_PUBLIC_CONVEX_URL}/api/storage/${fileId}`;
 }
 
-function FileCardActions({ file, isFavorited }: { file: Doc<"files">, isFavorited: boolean }) {
+function FileCardActions({
+  file,
+  isFavorited,
+}: {
+  file: Doc<"files">;
+  isFavorited: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const deleteFile = useMutation(api.files.deleteFile);
   const toggleFavorite = useMutation(api.files.toggleFavorite);
   const { toast } = useToast();
-  console.log(isFavorited)
 
   return (
     <>
@@ -69,8 +76,8 @@ function FileCardActions({ file, isFavorited }: { file: Doc<"files">, isFavorite
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. It will permanently delete this file
-              from our servers.
+              This file will get moved to trash. You can either restore it or
+              delete permanantly from there.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -79,12 +86,21 @@ function FileCardActions({ file, isFavorited }: { file: Doc<"files">, isFavorite
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={async () => {
-                await deleteFile({ fileId: file._id, storageId: file.fileId });
+                await deleteFile({
+                  fileId: file._id,
+                  // storageId: file.fileId,
+                  // markAsDelete: true,
+                });
                 toast({
                   variant: "default",
                   title: "File deleted successfully",
-                  description: "The file is removed from system",
+                  description:
+                    "The file is moved to trash! You can restore it in the trash.",
                 });
+                if (isFavorited) {
+                  await toggleFavorite({ fileId: file._id });
+                }
+                setOpen(false);
               }}
             >
               Continue
@@ -98,15 +114,17 @@ function FileCardActions({ file, isFavorited }: { file: Doc<"files">, isFavorite
           <MoreVertical />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          {!isFavorited && <DropdownMenuItem
-            className="flex gap-3 items-center text-green-500 cursor-pointer"
-            onClick={async () => {
-              await toggleFavorite({ fileId: file._id });
-            }}
-          >
-            <StarIcon className="h-5 w-5" />
-            Favorite
-          </DropdownMenuItem>}
+          {!isFavorited && (
+            <DropdownMenuItem
+              className="flex gap-3 items-center text-green-500 cursor-pointer"
+              onClick={async () => {
+                await toggleFavorite({ fileId: file._id });
+              }}
+            >
+              <StarIcon className="h-5 w-5" />
+              Favorite
+            </DropdownMenuItem>
+          )}
 
           {isFavorited && (
             <DropdownMenuItem
@@ -119,21 +137,38 @@ function FileCardActions({ file, isFavorited }: { file: Doc<"files">, isFavorite
               Unfavorite
             </DropdownMenuItem>
           )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="flex gap-3 items-center text-red-500 cursor-pointer"
-            onClick={() => setOpen(true)}
-          >
-            <TrashIcon className="h-5 w-5" />
-            Delete
-          </DropdownMenuItem>
+          <Protect role="org:admin" fallback={<></>}>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className=" text-red-500 cursor-pointer"
+              onClick={() => setOpen(true)}
+            >
+              {file.markAsDelete ? (
+                <div className="flex gap-3 items-center">
+                  <Undo className="h-5 w-5" />
+                  Restore
+                </div>
+              ) : (
+                <div className="flex gap-3 items-center">
+                  <TrashIcon className="h-5 w-5" />
+                  Delete
+                </div>
+              )}
+            </DropdownMenuItem>
+          </Protect>
         </DropdownMenuContent>
       </DropdownMenu>
     </>
   );
 }
 
-export function FileCard({ file, myfavorites }: { file: Doc<"files">, myfavorites: Doc<"favorites">[] }) {
+export function FileCard({
+  file,
+  myfavorites,
+}: {
+  file: Doc<"files">;
+  myfavorites: Doc<"favorites">[];
+}) {
   const typeIcons = {
     txt: <FileTextIcon />,
     csv: <GanttChartIcon />,
@@ -141,7 +176,7 @@ export function FileCard({ file, myfavorites }: { file: Doc<"files">, myfavorite
     image: <ImageIcon />,
   } as Record<Doc<"files">["type"], ReactNode>;
 
-  const isFavorited = myfavorites.some((fav)=>fav.fileId === file._id)
+  const isFavorited = myfavorites.some((fav) => fav.fileId === file._id);
 
   return (
     <Card>
@@ -150,7 +185,7 @@ export function FileCard({ file, myfavorites }: { file: Doc<"files">, myfavorite
           <p>{typeIcons[file.type]}</p>
           <div className="flex items-center w-full justify-between">
             <p>{file.name}</p>
-            <FileCardActions file={file} isFavorited/>
+            <FileCardActions file={file} isFavorited={isFavorited} />
           </div>
         </CardTitle>
         {/* <CardDescription>Card Description</CardDescription> */}
@@ -204,7 +239,7 @@ export function FileCard({ file, myfavorites }: { file: Doc<"files">, myfavorite
           Download
         </Button>
         <div className="flex items-center gap-2">
-          {isFavorited && <StarIcon className="text-green-500"/>}
+          {isFavorited && <StarIcon className="text-green-500" />}
           <p>{file.type}</p>
         </div>
       </CardFooter>
