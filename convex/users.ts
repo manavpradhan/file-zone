@@ -1,5 +1,5 @@
 import { ConvexError, v } from "convex/values";
-import { MutationCtx, QueryCtx, internalMutation } from "./_generated/server";
+import { MutationCtx, QueryCtx, internalMutation, query } from "./_generated/server";
 import { roles } from "./schema";
 
 
@@ -32,6 +32,34 @@ export const createUser = internalMutation({
         await ctx.db.patch(user._id, {
             orgIds: [...user.orgIds, {orgId: args.userId, role: args.role}]
         })
+    }
+})
+
+export const updateUser = internalMutation({
+    args: {
+        tokenIdentifier: v.string(),
+        name: v.string(),
+        image: v.string(),
+    },
+    async handler(ctx, args){
+
+        const user = await getUser(ctx, args.tokenIdentifier)
+        await ctx.db.patch(user._id, {
+            name: args.name,
+            image: args.image,
+        })
+    }
+})
+
+export const deleteUser = internalMutation({
+    args: {
+        tokenIdentifier: v.string(),
+    },
+    async handler(ctx, args){
+
+        const user = await getUser(ctx, args.tokenIdentifier)
+        
+        await ctx.db.delete(user._id)
     }
 })
 
@@ -68,5 +96,24 @@ export const updateUserRole = internalMutation({
         await ctx.db.patch(user._id, {
             orgIds: user.orgIds
         })
+    }
+})
+
+export const getUserProfile = query({
+    args: {userId: v.id("users")},
+    async handler(ctx, args){
+        const user = await ctx.db.get(args.userId);
+
+        if(!user){
+            return {
+                name: "deleted",
+                image: "nil"
+            }
+        }
+
+        return {
+            name: user.name,
+            image: user.image,
+        }
     }
 })

@@ -81,6 +81,7 @@ export function FileBrowser({
                 key={file._id}
                 file={file}
                 myfavorites={myfavorites ?? []}
+                trash={trash || false}
               />
             );
           })}
@@ -101,6 +102,7 @@ export function FileBrowser({
                 key={file._id}
                 file={file}
                 myfavorites={myfavorites ?? []}
+                trash={trash || false}
               />
             );
           })}
