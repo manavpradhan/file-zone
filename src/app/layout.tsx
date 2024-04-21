@@ -5,6 +5,7 @@ import ConvexClientProvider from "./ConvexClientProvider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "./header";
 import { Toaster } from "@/components/ui/toaster";
+import { Footer } from "./footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,17 +21,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-      <ThemeProvider attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange>
-          <ConvexClientProvider> 
+      <body className={`${inter.className} flex flex-col min-h-[100vh]`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ConvexClientProvider>
             <Toaster />
-            <Header/> 
-            {children}         
+            <Header />
+            {children}
+            <Footer />
           </ConvexClientProvider>
-        </ThemeProvider> 
+        </ThemeProvider>
       </body>
     </html>
   );
