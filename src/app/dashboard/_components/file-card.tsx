@@ -26,10 +26,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-import { Doc, Id } from "../../../../convex/_generated/dataModel";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  DownloadIcon,
   FileTextIcon,
   GanttChartIcon,
   ImageIcon,
@@ -39,12 +38,16 @@ import {
   TrashIcon,
   Undo,
 } from "lucide-react";
+
+import { Doc, Id } from "../../../../convex/_generated/dataModel";
 import { Dispatch, ReactNode, SetStateAction, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
 import { Protect } from "@clerk/nextjs";
+import { formatDistance, formatRelative, subDays } from "date-fns";
+import { FileCardActions } from "./file-actions";
 
 function GetImage({ storageId }: { storageId: string }) {
   const imageUrl = new URL(`${process.env.NEXT_PUBLIC_CONVEX_URL}/getImage`);
@@ -55,139 +58,6 @@ function GetImage({ storageId }: { storageId: string }) {
 
 function getFileUrl(fileId: Id<"_storage">): string {
   return `${process.env.NEXT_PUBLIC_CONVEX_URL}/api/storage/${fileId}`;
-}
-
-function FileCardActions({
-  file,
-  isFavorited,
-  trash,
-}: {
-  file: Doc<"files">;
-  isFavorited: boolean;
-  trash: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const deleteFile = useMutation(api.files.deleteFile);
-  const restoreFile = useMutation(api.files.restoreFile);
-  const toggleFavorite = useMutation(api.files.toggleFavorite);
-  const { toast } = useToast();
-
-  return (
-    <>
-      <AlertDialog open={open}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            {trash ? (
-              <AlertDialogDescription>
-                This operation will restore your file.
-              </AlertDialogDescription>
-            ) : (
-              <AlertDialogDescription>
-                This file will get moved to trash. You can restore it from
-                there, if you want.
-              </AlertDialogDescription>
-            )}
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setOpen(false)}>
-              Cancel
-            </AlertDialogCancel>
-            {!trash ? (
-              <AlertDialogAction
-                onClick={async () => {
-                  await deleteFile({
-                    fileId: file._id,
-                    // storageId: file.fileId,
-                    // markAsDelete: true,
-                  });
-                  toast({
-                    variant: "default",
-                    title: "File deleted successfully",
-                    description:
-                      "The file is moved to trash! You can restore it in the trash.",
-                  });
-                  if (isFavorited) {
-                    await toggleFavorite({ fileId: file._id });
-                  }
-                  setOpen(false);
-                }}
-              >
-                Trash
-              </AlertDialogAction>
-            ) : (
-              <AlertDialogAction
-                onClick={async () => {
-                  await restoreFile({
-                    fileId: file._id,
-                    // storageId: file.fileId,
-                    // markAsDelete: true,
-                  });
-                  toast({
-                    variant: "success",
-                    title: "File restored successfully!",
-                    description:
-                      "You can view it in all files section.",
-                  });
-                  setOpen(false);
-                }}
-              >
-                Restore
-              </AlertDialogAction>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <MoreVertical />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          {!trash && (
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={async () => {
-                await toggleFavorite({ fileId: file._id });
-              }}
-            >
-              {isFavorited ? (
-                <div className="flex gap-3 text-blue-800 items-center">
-                  <StarOffIcon className="h-5 w-5" />
-                  Unfavorite
-                </div>
-              ) : (
-                <div className="flex gap-3 text-green-500 items-center">
-                  <StarIcon className="h-5 w-5" />
-                  Favorite
-                </div>
-              )}
-            </DropdownMenuItem>
-          )}
-
-          <Protect role="org:admin" fallback={<></>}>
-            {!trash && <DropdownMenuSeparator />}
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => setOpen(true)}
-            >
-              {file.markAsDelete ? (
-                <div className="flex gap-3 text-green-500 items-center">
-                  <Undo className="h-5 w-5" />
-                  Restore
-                </div>
-              ) : (
-                <div className="flex gap-3 text-red-500 items-center">
-                  <TrashIcon className="h-5 w-5" />
-                  Delete
-                </div>
-              )}
-            </DropdownMenuItem>
-          </Protect>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </>
-  );
 }
 
 export function FileCard({
@@ -206,7 +76,9 @@ export function FileCard({
     image: <ImageIcon />,
   } as Record<Doc<"files">["type"], ReactNode>;
 
-  const userProfile = useQuery(api.users.getUserProfile, {userId: file.userId})
+  const userProfile = useQuery(api.users.getUserProfile, {
+    userId: file.userId,
+  });
   const isFavorited = myfavorites.some((fav) => fav.fileId === file._id);
 
   return (
@@ -214,7 +86,7 @@ export function FileCard({
       <CardHeader>
         <CardTitle className="flex gap-3 items-center">
           <p>{typeIcons[file.type]}</p>
-          <div className="flex items-center w-full justify-between">
+          <div className="flex items-center w-full justify-between font-normal">
             <p>{file.name}</p>
             <FileCardActions
               file={file}
@@ -264,18 +136,50 @@ export function FileCard({
           />
         )}
       </CardContent>
-      <CardFooter className="flex items-center justify-between">
-        {/* <p>{file._creationTime}</p> */}
-        <Button
-          onClick={() => {
-            window.open(getFileUrl(file.fileId), "_blank");
-          }}
-        >
-          Download
-        </Button>
-        <div className="flex items-center gap-2">
-          {isFavorited && <StarIcon className="text-green-500" />}
-          <p>{file.type}</p>
+      <CardFooter className="flex items-center justify-between pb-3">
+        <div className="flex flex-col gap-2 items-start">
+          <p className="text-sm text-gray-400">Uploaded By</p>
+          <div className="flex gap-2 items-center text-sm">
+            <Avatar>
+              <AvatarImage
+                src={
+                  userProfile?.image === "nil"
+                    ? "/delete_user.png"
+                    : userProfile?.image
+                }
+              />
+              <AvatarFallback>User Avatar</AvatarFallback>
+            </Avatar>
+            {userProfile?.name === "deleted" ? (
+              <p>{"Deleted User"}</p>
+            ) : (
+              <p>{userProfile?.name}</p>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col gap-2 items-end">
+          <div className="flex items-center gap-3 pb-2">
+            {isFavorited && (
+              <StarIcon size={"20px"} className="text-green-500" />
+            )}
+            <DownloadIcon
+              size={"20px"}
+              onClick={() => {
+                window.open(getFileUrl(file.fileId), "_blank");
+              }}
+              className="cursor-pointer"
+            />
+            <p>{file.type}</p>
+          </div>
+          <p className="text-sm text-gray-400 pb-3">
+            {formatDistance(
+              subDays(new Date(file._creationTime), 0),
+              new Date(),
+              {
+                addSuffix: true,
+              }
+            )}
+          </p>
         </div>
       </CardFooter>
     </Card>

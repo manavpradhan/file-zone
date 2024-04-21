@@ -71,6 +71,7 @@ export const getFiles = query({
   args: {
     orgId: v.string(),
     query: v.string(),
+    type: v.optional(fileTypes),
     favorites: v.optional(v.boolean()),
     trash: v.optional(v.boolean()),
   },
@@ -121,6 +122,10 @@ export const getFiles = query({
       return files.filter((file) =>
         file.name.toLowerCase().includes(query.toLowerCase())
       );
+    }
+
+    if (args.type) {
+      return files.filter((file) => file.type === args.type);
     }
 
     return files;
@@ -209,10 +214,12 @@ export const deletePermanently = internalMutation({
       .withIndex("marked_delete", (q) => q.eq("markAsDelete", true))
       .collect();
 
-    await Promise.all(files.map(async (file)=>{
+    await Promise.all(
+      files.map(async (file) => {
         await ctx.storage.delete(file.fileId);
         return await ctx.db.delete(file._id);
-    }))
+      })
+    );
     // files.forEach(async (file) => {
     //   await ctx.db.delete(file._id);
     //   await ctx.storage.delete(file.fileId);
