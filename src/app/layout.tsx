@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import ConvexClientProvider from "./ConvexClientProvider";
-import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "./header";
 import { Toaster } from "@/components/ui/toaster";
 import { Footer } from "./footer";
@@ -22,19 +21,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} flex flex-col min-h-[100vh]`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ConvexClientProvider>
-            <Toaster />
-            <Header />
-            {children}
-            <Footer />
-          </ConvexClientProvider>
-        </ThemeProvider>
+        <ConvexClientProvider>
+          <Toaster />
+          <Header />
+          {children}
+          <Footer />
+        </ConvexClientProvider>
       </body>
     </html>
   );
