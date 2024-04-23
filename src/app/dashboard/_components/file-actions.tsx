@@ -21,9 +21,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   DownloadIcon,
-  FileTextIcon,
-  GanttChartIcon,
-  ImageIcon,
   MoreVertical,
   StarIcon,
   StarOffIcon,
@@ -32,7 +29,7 @@ import {
 } from "lucide-react";
 
 import { Doc, Id } from "../../../../convex/_generated/dataModel";
-import { Dispatch, ReactNode, SetStateAction, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useToast } from "@/components/ui/use-toast";

@@ -61,6 +61,7 @@ export function FileBrowser({
     files?.map((file) => ({
       ...file,
       isFavorited: (myfavorites ?? []).some((fav) => fav.fileId === file._id),
+      isTrash: trash,
     })) ?? [];
 
   return (
@@ -111,13 +112,13 @@ export function FileBrowser({
           </div>
         </div>
         {files === undefined && (
-          <div className="flex flex-col mx-auto items-center gap-4 w-full mt-60">
+          <div className="flex flex-col mx-auto items-center gap-4 w-full mt-[10%]">
             <Loader2 className="mr-2 h-32 w-32 animate-spin" />
             <div>Loading...</div>
           </div>
         )}
         {files && !query && type === "all" && files?.length === 0 && (
-          <div className="flex flex-col mx-auto items-center gap-4 w-full mt-40">
+          <div className="flex flex-col mx-auto items-center gap-4 w-full mt-[5%]">
             <Image
               alt="Image of doc folder"
               width="300"

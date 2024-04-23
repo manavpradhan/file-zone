@@ -7,45 +7,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DownloadIcon,
   FileTextIcon,
   GanttChartIcon,
   ImageIcon,
-  MoreVertical,
   StarIcon,
-  StarOffIcon,
-  TrashIcon,
-  Undo,
 } from "lucide-react";
 
 import { Doc, Id } from "../../../../convex/_generated/dataModel";
-import { Dispatch, ReactNode, SetStateAction, useState } from "react";
+import { ReactNode} from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import { useToast } from "@/components/ui/use-toast";
 import Image from "next/image";
-import { Protect } from "@clerk/nextjs";
 import { formatDistance, formatRelative, subDays } from "date-fns";
 import { FileCardActions } from "./file-actions";
 
@@ -139,7 +114,7 @@ export function FileCard({
       <CardFooter className="flex items-center justify-between pb-3">
         <div className="flex flex-col gap-2 items-start">
           <p className="text-sm text-gray-400">Uploaded By</p>
-          <div className="flex gap-2 items-center text-sm">
+          <div className="flex gap-2 items-center text-xs">
             <Avatar>
               <AvatarImage
                 src={
@@ -171,7 +146,7 @@ export function FileCard({
             />
             <p>{file.type}</p>
           </div>
-          <p className="text-sm text-gray-400 pb-3">
+          <p className=" text-xs text-gray-400 pb-3">
             {formatDistance(
               subDays(new Date(file._creationTime), 0),
               new Date(),

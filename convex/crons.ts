@@ -5,7 +5,7 @@ const crons = cronJobs();
 
 crons.interval(
   "delete files marked for deletion",
-  { minutes: 5 }, // every minute
+  { minutes: 10 }, // every minute
   internal.files.deletePermanently
 );
 

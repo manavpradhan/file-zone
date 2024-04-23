@@ -33,7 +33,7 @@ function UserCell({ userId }: { userId: Id<"users"> }) {
   );
 }
 
-export const columns: ColumnDef<Doc<"files"> & { isFavorited: boolean }>[] = [
+export const columns: ColumnDef<Doc<"files"> & { isFavorited: boolean, isTrash: boolean | undefined }>[] = [
   {
     accessorKey: "name",
     header: "Name",
@@ -76,6 +76,7 @@ export const columns: ColumnDef<Doc<"files"> & { isFavorited: boolean }>[] = [
         <FileCardActions
           file={row.original}
           isFavorited={row.original.isFavorited}
+          trash={row.original.isTrash}
         />
       );
     },
